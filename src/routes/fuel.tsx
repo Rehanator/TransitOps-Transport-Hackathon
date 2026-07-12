@@ -26,6 +26,12 @@ function FuelPage() {
     date: new Date().toISOString().slice(0, 10),
   });
 
+  const perLiter = (cost: number, liters: number) =>
+    liters > 0 ? cost / liters : 0;
+
+  const formatRupees = (value: number) =>
+    `₹${value.toFixed(2)}`;
+
   const submit = () => {
     if (!form.vehicleId) return toast.error("Select vehicle");
     addFuel(form);
@@ -34,8 +40,12 @@ function FuelPage() {
   };
 
   const rows = fuel.map((f) => ({
-    ID: f.id, Vehicle: vehicles.find((v) => v.id === f.vehicleId)?.regNumber ?? "-",
-    Liters: f.liters, Cost: f.cost, "₹/L": f.liters ? (f.cost / f.liters).toFixed(2) : "-", Date: f.date,
+    ID: f.id,
+    Vehicle: vehicles.find((v) => v.id === f.vehicleId)?.regNumber ?? "-",
+    Liters: f.liters,
+    Cost: f.cost,
+    "₹/L": f.liters ? formatRupees(perLiter(f.cost, f.liters)) : "-",
+    Date: f.date,
   }));
 
   return (
