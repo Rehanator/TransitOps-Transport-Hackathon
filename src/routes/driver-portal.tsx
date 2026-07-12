@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { RoleGuard } from "@/components/auth/RoleGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { createFuelLog, uploadFuelMedia, fetchFuelLogs } from "@/lib/fuel-logs";
@@ -158,11 +159,11 @@ function DriverPortalInner() {
             <Label>Video / photo proof</Label>
             <Input
               type="file"
-              accept="image/*,video/*"
+              accept="image/jpeg,image/png,video/mp4"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
             <p className="text-xs text-muted-foreground">
-              Upload a receipt photo or meter-reading video for verification.
+              Upload a JPEG/PNG receipt photo, or an MP4 meter-reading video.
             </p>
           </div>
           <div className="grid gap-2">
