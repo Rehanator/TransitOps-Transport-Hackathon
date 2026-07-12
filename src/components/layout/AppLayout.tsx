@@ -12,7 +12,6 @@ import {
   BarChart3,
   Moon,
   Sun,
-  ShieldCheck,
   RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
