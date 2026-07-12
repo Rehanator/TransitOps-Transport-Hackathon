@@ -35,6 +35,11 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { RoleGuard } from "@/components/auth/RoleGuard";
+import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { fetchFuelLogs } from "@/lib/fuel-logs";
+import { ClipboardCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   component: () => (
@@ -246,6 +251,7 @@ function Dashboard() {
         </CardContent>
       </Card>
 
+      <PendingFuelReviewCard />
 
       <Card>
         <CardHeader><CardTitle>Cost Distribution by Vehicle</CardTitle></CardHeader>
