@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Plus, Play, CheckCircle2, X, Download, FileText } from "lucide-react";
+import { Plus, Play, CheckCircle2, Ban, Download, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { exportCSV, exportPDF } from "@/lib/export";
 
@@ -22,10 +22,11 @@ function TripsPage() {
   const store = useStore();
   const {
     trips, vehicles, drivers, currentRole,
-    addTrip, dispatchTrip, completeTrip, cancelTrip,
+    addTrip, dispatchTrip, completeTrip, cancelTrip, deleteTrip,
   } = store;
   const canCreate = currentRole === "Fleet Manager";
   const canOperate = currentRole === "Fleet Manager" || currentRole === "Driver";
+  const canDelete = currentRole === "Fleet Manager";
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
@@ -106,8 +107,10 @@ function TripsPage() {
         data={filteredTrips}
         columns={[
           { key: "id", header: "Trip", accessor: (r) => r.id, render: (r) => <span className="font-mono text-xs">{r.id}</span> },
-          { key: "route", header: "Route", accessor: (r) => `${r.source} → ${r.destination}`,
-            render: (r) => <span className="font-medium">{r.source} → {r.destination}</span> },
+          { key: "from", header: "From", accessor: (r) => r.source,
+            render: (r) => <span className="font-medium">{r.source}</span> },
+          { key: "to", header: "To", accessor: (r) => r.destination,
+            render: (r) => <span className="font-medium">{r.destination}</span> },
           { key: "vehicle", header: "Vehicle",
             accessor: (r) => vehicles.find((v) => v.id === r.vehicleId)?.regNumber ?? "-" },
           { key: "driver", header: "Driver",
@@ -121,8 +124,8 @@ function TripsPage() {
           { key: "status", header: "Status", accessor: (r) => r.status,
             render: (r) => <StatusBadge status={r.status} /> },
         ]}
-        actions={canOperate ? (row) => (
-          <div className="flex justify-end gap-1">
+        actions={(canOperate || canDelete) ? (row) => (
+          <div className="flex items-center justify-end gap-1">
             {row.status === "Draft" && (
               <Button size="sm" variant="outline" onClick={() => {
                 const r = dispatchTrip(row.id);
@@ -137,9 +140,19 @@ function TripsPage() {
                   <CheckCircle2 className="mr-1 h-3 w-3" /> Complete
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => { cancelTrip(row.id); toast.success("Cancelled"); }}>
-                  <X className="mr-1 h-3 w-3" /> Cancel
+                  <Ban className="mr-1 h-3 w-3" /> Cancel
                 </Button>
               </>
+            )}
+            {canDelete && (
+              <Button
+                size="sm"
+                variant="ghost"
+                aria-label="Delete trip"
+                onClick={() => { deleteTrip(row.id); toast.success("Trip deleted"); }}
+              >
+                <Trash2 className="h-4 w-4 text-red-500" />
+              </Button>
             )}
           </div>
         ) : undefined}
