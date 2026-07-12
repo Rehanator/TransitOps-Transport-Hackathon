@@ -127,9 +127,9 @@ function TripsPage() {
         actions={(canOperate || canDelete) ? (row) => (
           <div className="flex items-center justify-end gap-2">
             {(row.status === "Draft" || row.status === "Dispatched") && (
-              <div className="flex items-center rounded-lg border bg-muted p-0.5">
+              <div className="flex items-center gap-2 rounded-lg border bg-muted p-1">
                 {row.status === "Draft" && (
-                  <Button size="sm" variant="ghost" className="h-7 gap-1 px-2" onClick={() => {
+                  <Button size="sm" variant="outline" className="h-7 gap-1 px-2" onClick={() => {
                     const r = dispatchTrip(row.id);
                     r.ok ? toast.success("Dispatched") : toast.error(r.error!);
                   }}>
@@ -138,10 +138,10 @@ function TripsPage() {
                 )}
                 {row.status === "Dispatched" && (
                   <>
-                    <Button size="sm" variant="ghost" className="h-7 gap-1 px-2" onClick={() => startComplete(row)}>
+                    <Button size="sm" variant="outline" className="h-7 gap-1 px-2" onClick={() => startComplete(row)}>
                       <CheckCircle2 className="h-3 w-3" /> Complete
                     </Button>
-                    <Button size="sm" variant="ghost" className="h-7 gap-1 px-2" onClick={() => { cancelTrip(row.id); toast.success("Cancelled"); }}>
+                    <Button size="sm" variant="outline" className="h-7 gap-1 px-2" onClick={() => { cancelTrip(row.id); toast.success("Cancelled"); }}>
                       <Ban className="h-3 w-3" /> Cancel
                     </Button>
                   </>
