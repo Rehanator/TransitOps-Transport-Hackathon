@@ -12,7 +12,6 @@ import {
   BarChart3,
   Moon,
   Sun,
-  ShieldCheck,
   RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -79,12 +78,19 @@ function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-            <ShieldCheck className="h-5 w-5" />
+          <div className="group-data-[collapsible=icon]:hidden">
+            <img
+              src="/transitops-logo.png"
+              alt="TransitOps"
+              className="h-10 w-auto rounded-md bg-white p-1"
+            />
           </div>
-          <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-semibold text-sidebar-foreground">TransitOps</span>
-            <span className="text-xs text-sidebar-foreground/60">Smart Transport OS</span>
+          <div className="hidden h-8 w-8 items-center justify-center rounded-md bg-white p-0.5 group-data-[collapsible=icon]:flex">
+            <img
+              src="/transitops-icon.png"
+              alt="TransitOps"
+              className="h-full w-full object-contain"
+            />
           </div>
         </div>
       </SidebarHeader>
