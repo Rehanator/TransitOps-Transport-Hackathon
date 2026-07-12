@@ -291,6 +291,24 @@ export const useStore = create<State>()(
         }));
       },
 
+      deleteTrip: (id) => {
+        const trip = get().trips.find((t) => t.id === id);
+        if (!trip) return;
+        set((s) => ({
+          trips: s.trips.filter((t) => t.id !== id),
+          vehicles:
+            trip.status === "Dispatched"
+              ? s.vehicles.map((x) =>
+                  x.id === trip.vehicleId ? { ...x, status: "Available" } : x,
+                )
+              : s.vehicles,
+          drivers:
+            trip.status === "Dispatched"
+              ? s.drivers.map((x) => (x.id === trip.driverId ? { ...x, status: "Available" } : x))
+              : s.drivers,
+        }));
+      },
+
       openMaintenance: (m) =>
         set((s) => ({
           maintenance: [...s.maintenance, { ...m, id: uid(), status: "Open" }],
