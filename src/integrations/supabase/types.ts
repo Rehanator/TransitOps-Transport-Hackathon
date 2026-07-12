@@ -14,68 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      fuel_logs: {
-        Row: {
-          created_at: string
-          driver_email: string | null
-          driver_id: string
-          id: string
-          liters: number
-          media_url: string | null
-          notes: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          reviewer_note: string | null
-          status: Database["public"]["Enums"]["fuel_log_status"]
-          total_cost: number
-          updated_at: string
-          vehicle_id: string | null
-          vehicle_registration: string | null
-        }
-        Insert: {
-          created_at?: string
-          driver_email?: string | null
-          driver_id: string
-          id?: string
-          liters: number
-          media_url?: string | null
-          notes?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          reviewer_note?: string | null
-          status?: Database["public"]["Enums"]["fuel_log_status"]
-          total_cost: number
-          updated_at?: string
-          vehicle_id?: string | null
-          vehicle_registration?: string | null
-        }
-        Update: {
-          created_at?: string
-          driver_email?: string | null
-          driver_id?: string
-          id?: string
-          liters?: number
-          media_url?: string | null
-          notes?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          reviewer_note?: string | null
-          status?: Database["public"]["Enums"]["fuel_log_status"]
-          total_cost?: number
-          updated_at?: string
-          vehicle_id?: string | null
-          vehicle_registration?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fuel_logs_vehicle_id_fkey"
-            columns: ["vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "vehicles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_roles: {
         Row: {
           clerk_user_id: string
@@ -100,39 +38,6 @@ export type Database = {
         }
         Relationships: []
       }
-      vehicles: {
-        Row: {
-          created_at: string
-          id: string
-          lifetime_odometer: number
-          max_capacity: number
-          model: string
-          registration_number: string
-          status: Database["public"]["Enums"]["vehicle_status"]
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          lifetime_odometer?: number
-          max_capacity?: number
-          model: string
-          registration_number: string
-          status?: Database["public"]["Enums"]["vehicle_status"]
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          lifetime_odometer?: number
-          max_capacity?: number
-          model?: string
-          registration_number?: string
-          status?: Database["public"]["Enums"]["vehicle_status"]
-          updated_at?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
@@ -142,8 +47,6 @@ export type Database = {
     }
     Enums: {
       app_role: "Fleet Manager" | "Driver"
-      fuel_log_status: "Pending" | "Approved" | "Rejected"
-      vehicle_status: "Available" | "On Trip" | "In Shop"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -272,8 +175,6 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["Fleet Manager", "Driver"],
-      fuel_log_status: ["Pending", "Approved", "Rejected"],
-      vehicle_status: ["Available", "On Trip", "In Shop"],
     },
   },
 } as const
