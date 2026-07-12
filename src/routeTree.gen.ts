@@ -15,6 +15,7 @@ import { Route as MaintenanceRouteImport } from './routes/maintenance'
 import { Route as FuelRouteImport } from './routes/fuel'
 import { Route as ExpensesRouteImport } from './routes/expenses'
 import { Route as DriversRouteImport } from './routes/drivers'
+import { Route as DriverPortalRouteImport } from './routes/driver-portal'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -48,6 +49,11 @@ const DriversRoute = DriversRouteImport.update({
   path: '/drivers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DriverPortalRoute = DriverPortalRouteImport.update({
+  id: '/driver-portal',
+  path: '/driver-portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -62,6 +68,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/driver-portal': typeof DriverPortalRoute
   '/drivers': typeof DriversRoute
   '/expenses': typeof ExpensesRoute
   '/fuel': typeof FuelRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/driver-portal': typeof DriverPortalRoute
   '/drivers': typeof DriversRoute
   '/expenses': typeof ExpensesRoute
   '/fuel': typeof FuelRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/driver-portal': typeof DriverPortalRoute
   '/drivers': typeof DriversRoute
   '/expenses': typeof ExpensesRoute
   '/fuel': typeof FuelRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/analytics'
+    | '/driver-portal'
     | '/drivers'
     | '/expenses'
     | '/fuel'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/analytics'
+    | '/driver-portal'
     | '/drivers'
     | '/expenses'
     | '/fuel'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/analytics'
+    | '/driver-portal'
     | '/drivers'
     | '/expenses'
     | '/fuel'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  DriverPortalRoute: typeof DriverPortalRoute
   DriversRoute: typeof DriversRoute
   ExpensesRoute: typeof ExpensesRoute
   FuelRoute: typeof FuelRoute
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DriversRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/driver-portal': {
+      id: '/driver-portal'
+      path: '/driver-portal'
+      fullPath: '/driver-portal'
+      preLoaderRoute: typeof DriverPortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/analytics': {
       id: '/analytics'
       path: '/analytics'
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
+  DriverPortalRoute: DriverPortalRoute,
   DriversRoute: DriversRoute,
   ExpensesRoute: ExpensesRoute,
   FuelRoute: FuelRoute,
