@@ -13,6 +13,7 @@ import {
   Moon,
   Sun,
   RotateCcw,
+  ClipboardCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useStore, type Role } from "@/lib/store";
@@ -50,6 +51,7 @@ const NAV: NavItem[] = [
   { title: "Trips", url: "/trips", icon: RouteIcon, roles: ["Fleet Manager", "Driver"] },
   { title: "Maintenance", url: "/maintenance", icon: Wrench, roles: ["Fleet Manager"] },
   { title: "Fuel Logs", url: "/fuel", icon: Fuel, roles: ["Fleet Manager", "Financial Analyst"] },
+  { title: "Fuel Verification", url: "/fuel-verification", icon: ClipboardCheck, roles: ["Fleet Manager"] },
   { title: "Expenses", url: "/expenses", icon: Receipt, roles: ["Fleet Manager", "Financial Analyst"] },
   { title: "Analytics", url: "/analytics", icon: BarChart3, roles: ["Financial Analyst", "Fleet Manager"] },
   { title: "Driver Portal", url: "/driver-portal", icon: RouteIcon, roles: ["Driver"] },
