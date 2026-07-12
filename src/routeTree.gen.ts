@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VehiclesRouteImport } from './routes/vehicles'
 import { Route as TripsRouteImport } from './routes/trips'
 import { Route as MaintenanceRouteImport } from './routes/maintenance'
+import { Route as FuelApprovalsRouteImport } from './routes/fuel-approvals'
 import { Route as FuelRouteImport } from './routes/fuel'
 import { Route as ExpensesRouteImport } from './routes/expenses'
 import { Route as DriversRouteImport } from './routes/drivers'
@@ -32,6 +33,11 @@ const TripsRoute = TripsRouteImport.update({
 const MaintenanceRoute = MaintenanceRouteImport.update({
   id: '/maintenance',
   path: '/maintenance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FuelApprovalsRoute = FuelApprovalsRouteImport.update({
+  id: '/fuel-approvals',
+  path: '/fuel-approvals',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FuelRoute = FuelRouteImport.update({
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/drivers': typeof DriversRoute
   '/expenses': typeof ExpensesRoute
   '/fuel': typeof FuelRoute
+  '/fuel-approvals': typeof FuelApprovalsRoute
   '/maintenance': typeof MaintenanceRoute
   '/trips': typeof TripsRoute
   '/vehicles': typeof VehiclesRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/drivers': typeof DriversRoute
   '/expenses': typeof ExpensesRoute
   '/fuel': typeof FuelRoute
+  '/fuel-approvals': typeof FuelApprovalsRoute
   '/maintenance': typeof MaintenanceRoute
   '/trips': typeof TripsRoute
   '/vehicles': typeof VehiclesRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/drivers': typeof DriversRoute
   '/expenses': typeof ExpensesRoute
   '/fuel': typeof FuelRoute
+  '/fuel-approvals': typeof FuelApprovalsRoute
   '/maintenance': typeof MaintenanceRoute
   '/trips': typeof TripsRoute
   '/vehicles': typeof VehiclesRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/drivers'
     | '/expenses'
     | '/fuel'
+    | '/fuel-approvals'
     | '/maintenance'
     | '/trips'
     | '/vehicles'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/drivers'
     | '/expenses'
     | '/fuel'
+    | '/fuel-approvals'
     | '/maintenance'
     | '/trips'
     | '/vehicles'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/drivers'
     | '/expenses'
     | '/fuel'
+    | '/fuel-approvals'
     | '/maintenance'
     | '/trips'
     | '/vehicles'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   DriversRoute: typeof DriversRoute
   ExpensesRoute: typeof ExpensesRoute
   FuelRoute: typeof FuelRoute
+  FuelApprovalsRoute: typeof FuelApprovalsRoute
   MaintenanceRoute: typeof MaintenanceRoute
   TripsRoute: typeof TripsRoute
   VehiclesRoute: typeof VehiclesRoute
@@ -168,6 +181,13 @@ declare module '@tanstack/react-router' {
       path: '/maintenance'
       fullPath: '/maintenance'
       preLoaderRoute: typeof MaintenanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fuel-approvals': {
+      id: '/fuel-approvals'
+      path: '/fuel-approvals'
+      fullPath: '/fuel-approvals'
+      preLoaderRoute: typeof FuelApprovalsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fuel': {
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   DriversRoute: DriversRoute,
   ExpensesRoute: ExpensesRoute,
   FuelRoute: FuelRoute,
+  FuelApprovalsRoute: FuelApprovalsRoute,
   MaintenanceRoute: MaintenanceRoute,
   TripsRoute: TripsRoute,
   VehiclesRoute: VehiclesRoute,
