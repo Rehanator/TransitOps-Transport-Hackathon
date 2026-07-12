@@ -39,11 +39,12 @@ export function RoleGuard({ allowed, children }: Props) {
 }
 
 function RoleGate({ allowed, children }: Props) {
-  const { role, isLoaded } = useUserRole();
+  const { role, roles, isLoaded } = useUserRole();
   if (!isLoaded) {
     return <div className="p-8 text-sm text-muted-foreground">Loading…</div>;
   }
-  if (!role || !allowed.includes(role)) {
+  const hasAllowed = roles.some((r) => allowed.includes(r));
+  if (!hasAllowed) {
     return (
       <Card className="mx-auto mt-10 max-w-md">
         <CardHeader>
