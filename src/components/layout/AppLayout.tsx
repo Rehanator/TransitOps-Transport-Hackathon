@@ -52,6 +52,7 @@ const NAV: NavItem[] = [
   { title: "Fuel Logs", url: "/fuel", icon: Fuel, roles: ["Fleet Manager", "Financial Analyst"] },
   { title: "Expenses", url: "/expenses", icon: Receipt, roles: ["Fleet Manager", "Financial Analyst"] },
   { title: "Analytics", url: "/analytics", icon: BarChart3, roles: ["Financial Analyst", "Fleet Manager"] },
+  { title: "Driver Portal", url: "/driver-portal", icon: RouteIcon, roles: ["Driver"] },
 ];
 
 function useDark() {
