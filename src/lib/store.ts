@@ -116,6 +116,7 @@ interface State {
   addFuel: (f: Omit<FuelLog, "id">) => void;
   deleteFuel: (id: string) => void;
   addExpense: (e: Omit<Expense, "id">) => void;
+  deleteExpense: (id: string) => void;
 
   resetSeed: () => void;
 }
@@ -346,6 +347,7 @@ export const useStore = create<State>()(
       addFuel: (f) => set((s) => ({ fuel: [...s.fuel, { ...f, id: uid() }] })),
       deleteFuel: (id) => set((s) => ({ fuel: s.fuel.filter((f) => f.id !== id) })),
       addExpense: (e) => set((s) => ({ expenses: [...s.expenses, { ...e, id: uid() }] })),
+      deleteExpense: (id) => set((s) => ({ expenses: s.expenses.filter((e) => e.id !== id) })),
       resetSeed: () =>
         set({
           currentRole: "Fleet Manager",
