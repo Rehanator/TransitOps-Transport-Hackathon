@@ -162,10 +162,10 @@ const seedMaintenance: MaintenanceLog[] = [
 ];
 
 const seedFuel: FuelLog[] = [
-  { id: "f1", vehicleId: "v1", liters: 22, cost: 2200, date: todayPlus(-3) },
-  { id: "f2", vehicleId: "v2", liters: 85, cost: 8500, date: todayPlus(-1) },
-  { id: "f3", vehicleId: "v4", liters: 120, cost: 12000, date: todayPlus(-10) },
-  { id: "f4", vehicleId: "v1", liters: 18, cost: 1800, date: todayPlus(-15) },
+  { id: "f1", vehicleId: "v1", liters: 22, cost: 2420, date: todayPlus(-3) },
+  { id: "f2", vehicleId: "v2", liters: 85, cost: 8075, date: todayPlus(-1) },
+  { id: "f3", vehicleId: "v4", liters: 120, cost: 10200, date: todayPlus(-10) },
+  { id: "f4", vehicleId: "v1", liters: 18, cost: 1890, date: todayPlus(-15) },
 ];
 
 const seedExpenses: Expense[] = [
