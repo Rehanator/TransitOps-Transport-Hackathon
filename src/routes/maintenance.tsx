@@ -20,7 +20,7 @@ import { exportCSV } from "@/lib/export";
 export const Route = createFileRoute("/maintenance")({ component: MaintenancePage });
 
 function MaintenancePage() {
-  const { maintenance, vehicles, openMaintenance, closeMaintenance, currentRole } = useStore();
+  const { maintenance, vehicles, openMaintenance, closeMaintenance, deleteMaintenance, currentRole } = useStore();
   const canEdit = currentRole === "Fleet Manager";
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
