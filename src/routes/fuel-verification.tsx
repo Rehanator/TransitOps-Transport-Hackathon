@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RoleGuard } from "@/components/auth/RoleGuard";
+import { supabase } from "@/integrations/supabase/client";
 import {
   fetchFuelLogs,
   getSignedMediaUrl,
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/fuel-verification")({
 });
 
 function FuelVerification() {
+  const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["fuel-logs", "Pending"],
     queryFn: () => fetchFuelLogs("Pending"),
@@ -35,6 +37,29 @@ function FuelVerification() {
       return all.filter((r) => r.status !== "Pending").slice(0, 10);
     },
   });
+
+  // Real-time: instantly show new driver submissions and reviewer changes.
+  useEffect(() => {
+    const channel = supabase
+      .channel("fuel_logs:fm")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "fuel_logs" },
+        (payload) => {
+          qc.invalidateQueries({ queryKey: ["fuel-logs"] });
+          if (payload.eventType === "INSERT") {
+            const row = payload.new as FuelLogRow;
+            toast.info(
+              `New fuel log · ${row.vehicle_registration ?? "vehicle"} · ${Number(row.liters).toFixed(2)} L`,
+            );
+          }
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
 
   return (
     <div className="space-y-6">
