@@ -78,6 +78,35 @@ function KpiCard({
   );
 }
 
+function PendingFuelReviewCard() {
+  const { data } = useQuery({
+    queryKey: ["fuel-logs", "Pending"],
+    queryFn: () => fetchFuelLogs("Pending"),
+  });
+  const count = data?.length ?? 0;
+  return (
+    <Card className="border-info/40 bg-info/5">
+      <CardHeader className="flex flex-row items-center gap-2 space-y-0">
+        <ClipboardCheck className="h-5 w-5 text-info" />
+        <CardTitle className="text-info">Fuel Logs Pending Verification</CardTitle>
+        {count > 0 && (
+          <Badge variant="secondary" className="ml-auto">{count} pending</Badge>
+        )}
+      </CardHeader>
+      <CardContent className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          {count === 0
+            ? "No driver fuel submissions awaiting review."
+            : `${count} driver submission${count === 1 ? "" : "s"} need review before being added to vehicle expenses.`}
+        </p>
+        <Button asChild size="sm" variant={count > 0 ? "default" : "outline"}>
+          <Link to="/fuel-verification">Open verification</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 function Dashboard() {
   const { vehicles, drivers, trips, maintenance, fuel, expenses, currentRole, users } = useStore();
   const [typeF, setTypeF] = useState<string>("all");
