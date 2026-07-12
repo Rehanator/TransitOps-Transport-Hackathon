@@ -125,24 +125,28 @@ function TripsPage() {
             render: (r) => <StatusBadge status={r.status} /> },
         ]}
         actions={(canOperate || canDelete) ? (row) => (
-          <div className="flex items-center justify-end gap-1">
-            {row.status === "Draft" && (
-              <Button size="sm" variant="outline" onClick={() => {
-                const r = dispatchTrip(row.id);
-                r.ok ? toast.success("Dispatched") : toast.error(r.error!);
-              }}>
-                <Play className="mr-1 h-3 w-3" /> Dispatch
-              </Button>
-            )}
-            {row.status === "Dispatched" && (
-              <>
-                <Button size="sm" variant="outline" onClick={() => startComplete(row)}>
-                  <CheckCircle2 className="mr-1 h-3 w-3" /> Complete
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => { cancelTrip(row.id); toast.success("Cancelled"); }}>
-                  <Ban className="mr-1 h-3 w-3" /> Cancel
-                </Button>
-              </>
+          <div className="flex items-center justify-end gap-2">
+            {(row.status === "Draft" || row.status === "Dispatched") && (
+              <div className="flex items-center rounded-lg border bg-muted p-0.5">
+                {row.status === "Draft" && (
+                  <Button size="sm" variant="ghost" className="h-7 gap-1 px-2" onClick={() => {
+                    const r = dispatchTrip(row.id);
+                    r.ok ? toast.success("Dispatched") : toast.error(r.error!);
+                  }}>
+                    <Play className="h-3 w-3" /> Dispatch
+                  </Button>
+                )}
+                {row.status === "Dispatched" && (
+                  <>
+                    <Button size="sm" variant="ghost" className="h-7 gap-1 px-2" onClick={() => startComplete(row)}>
+                      <CheckCircle2 className="h-3 w-3" /> Complete
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 gap-1 px-2" onClick={() => { cancelTrip(row.id); toast.success("Cancelled"); }}>
+                      <Ban className="h-3 w-3" /> Cancel
+                    </Button>
+                  </>
+                )}
+              </div>
             )}
             {canDelete && (
               <Button
