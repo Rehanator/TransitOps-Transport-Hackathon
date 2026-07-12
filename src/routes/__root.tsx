@@ -6,9 +6,14 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
+import { ClerkProvider } from "@clerk/clerk-react";
 
 import appCss from "../styles.css?url";
 import { AppLayout } from "../components/layout/AppLayout";
+
+const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as
+  | string
+  | undefined;
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
@@ -58,9 +63,17 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {mounted ? (
-        <AppLayout>
-          <Outlet />
-        </AppLayout>
+        CLERK_PUBLISHABLE_KEY ? (
+          <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+            <AppLayout>
+              <Outlet />
+            </AppLayout>
+          </ClerkProvider>
+        ) : (
+          <AppLayout>
+            <Outlet />
+          </AppLayout>
+        )
       ) : (
         <div className="min-h-screen bg-background" />
       )}

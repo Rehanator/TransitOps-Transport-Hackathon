@@ -15,8 +15,15 @@ import {
 import { Plus, Pencil, Trash2, Download, FileText, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { exportCSV, exportPDF } from "@/lib/export";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 
-export const Route = createFileRoute("/vehicles")({ component: VehiclesPage });
+export const Route = createFileRoute("/vehicles")({
+  component: () => (
+    <RoleGuard allowed={["Fleet Manager"]}>
+      <VehiclesPage />
+    </RoleGuard>
+  ),
+});
 
 const empty: Omit<Vehicle, "id"> = {
   regNumber: "", name: "", type: "Van", capacity: 1000, odometer: 0,

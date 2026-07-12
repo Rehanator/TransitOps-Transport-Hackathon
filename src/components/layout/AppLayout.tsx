@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useStore, type Role } from "@/lib/store";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 import {
   Sidebar,
   SidebarContent,
@@ -51,6 +52,7 @@ const NAV: NavItem[] = [
   { title: "Fuel Logs", url: "/fuel", icon: Fuel, roles: ["Fleet Manager", "Financial Analyst"] },
   { title: "Expenses", url: "/expenses", icon: Receipt, roles: ["Fleet Manager", "Financial Analyst"] },
   { title: "Analytics", url: "/analytics", icon: BarChart3, roles: ["Financial Analyst", "Fleet Manager"] },
+  { title: "Driver Portal", url: "/driver-portal", icon: RouteIcon, roles: ["Driver"] },
 ];
 
 function useDark() {
@@ -160,6 +162,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
               >
                 <RotateCcw className="h-4 w-4" />
               </Button>
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <Button size="sm" variant="outline">Sign in</Button>
+                </SignInButton>
+              </SignedOut>
+              <SignedIn>
+                <UserButton afterSignOutUrl="/" />
+              </SignedIn>
             </div>
           </header>
           <main className="flex-1 p-4 md:p-6">{children}</main>
