@@ -114,6 +114,7 @@ interface State {
   deleteMaintenance: (id: string) => void;
 
   addFuel: (f: Omit<FuelLog, "id">) => void;
+  deleteFuel: (id: string) => void;
   addExpense: (e: Omit<Expense, "id">) => void;
 
   resetSeed: () => void;
@@ -343,6 +344,7 @@ export const useStore = create<State>()(
         }));
       },
       addFuel: (f) => set((s) => ({ fuel: [...s.fuel, { ...f, id: uid() }] })),
+      deleteFuel: (id) => set((s) => ({ fuel: s.fuel.filter((f) => f.id !== id) })),
       addExpense: (e) => set((s) => ({ expenses: [...s.expenses, { ...e, id: uid() }] })),
       resetSeed: () =>
         set({
