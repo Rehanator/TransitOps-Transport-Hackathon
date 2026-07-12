@@ -66,6 +66,23 @@ function DriverPortalInner() {
     },
   });
 
+  // Real-time: keep the driver's list in sync with reviewer decisions.
+  useEffect(() => {
+    const channel = supabase
+      .channel("fuel_logs:driver")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "fuel_logs" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["my-fuel-logs"] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
   const submit = useMutation({
     mutationFn: async () => {
       if (!vehicleId) throw new Error("Select a vehicle");
