@@ -34,9 +34,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 
 export const Route = createFileRoute("/")({
-  component: Dashboard,
+  component: () => (
+    <RoleGuard allowed={["Fleet Manager"]}>
+      <Dashboard />
+    </RoleGuard>
+  ),
 });
 
 function KpiCard({
