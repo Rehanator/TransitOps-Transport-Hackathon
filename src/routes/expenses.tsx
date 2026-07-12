@@ -11,14 +11,14 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Plus, Download } from "lucide-react";
+import { Plus, Download, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { exportCSV } from "@/lib/export";
 
 export const Route = createFileRoute("/expenses")({ component: ExpensesPage });
 
 function ExpensesPage() {
-  const { expenses, vehicles, addExpense, currentRole } = useStore();
+  const { expenses, vehicles, addExpense, deleteExpense, currentRole } = useStore();
   const canEdit = currentRole === "Fleet Manager" || currentRole === "Financial Analyst";
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Omit<Expense, "id">>({
@@ -63,6 +63,16 @@ function ExpensesPage() {
             render: (r) => `₹${r.cost.toLocaleString()}` },
           { key: "date", header: "Date", accessor: (r) => r.date },
         ]}
+        actions={(r) => (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-red-500"
+            onClick={() => { deleteExpense(r.id); toast.success("Expense deleted"); }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
       />
 
       <Dialog open={open} onOpenChange={setOpen}>
