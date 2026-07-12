@@ -12,8 +12,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Download, FileText, AlertTriangle, Upload } from "lucide-react";
+import { Plus, Trash2, Download, FileText, AlertTriangle, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { exportCSV, exportPDF } from "@/lib/export";
 
@@ -25,11 +24,19 @@ const empty: Omit<Driver, "id"> = {
   contact: "", safetyScore: 80, status: "Available",
 };
 
-function ScorePill({ score }: { score: number }) {
-  const tone = score >= 85 ? "bg-success/15 text-success" :
-               score >= 60 ? "bg-warning/15 text-warning" :
-               "bg-destructive/15 text-destructive";
-  return <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${tone}`}>{score}</span>;
+function ScoreBar({ score }: { score: number }) {
+  const barColor = score >= 80 ? "bg-green-500" :
+                   score >= 60 ? "bg-orange-500" :
+                   "bg-red-500";
+  const pct = Math.max(0, Math.min(100, score));
+  return (
+    <div className="flex items-center gap-2">
+      <div className="h-2 w-24 overflow-hidden rounded-full bg-muted">
+        <div className={`h-full ${barColor}`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-sm font-medium tabular-nums">{score}</span>
+    </div>
+  );
 }
 
 function DriversPage() {
@@ -94,25 +101,28 @@ function DriversPage() {
               <div className="flex items-center gap-2">
                 <span>{r.name}</span>
                 {isLicenseExpired(r) && (
-                  <Badge variant="destructive" className="gap-1">
-                    <AlertTriangle className="h-3 w-3" /> Expired
-                  </Badge>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-xs font-medium text-red-500">
+                    <AlertTriangle className="h-3 w-3" /> License expired
+                  </span>
                 )}
               </div>
             )},
           { key: "licenseCategory", header: "Category", accessor: (r) => r.licenseCategory },
           { key: "licenseExpiry", header: "Expiry", accessor: (r) => r.licenseExpiry },
           { key: "contact", header: "Contact", accessor: (r) => r.contact },
-          { key: "safetyScore", header: "Safety", accessor: (r) => r.safetyScore,
-            render: (r) => <ScorePill score={r.safetyScore} /> },
+          { key: "safetyScore", header: "Safety Score", accessor: (r) => r.safetyScore,
+            render: (r) => <ScoreBar score={r.safetyScore} /> },
           { key: "status", header: "Status", accessor: (r) => r.status,
             render: (r) => <StatusBadge status={r.status} /> },
         ]}
         actions={canEdit ? (row) => (
-          <div className="flex justify-end gap-1">
-            <Button size="icon" variant="ghost" onClick={() => openEdit(row)}>
-              <Pencil className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center justify-end gap-3">
+            <button
+              onClick={() => openEdit(row)}
+              className="text-sm font-medium hover:underline"
+            >
+              Edit
+            </button>
             {currentRole === "Fleet Manager" && (
               <Button size="icon" variant="ghost" onClick={() => {
                 deleteDriver(row.id); toast.success("Driver removed");
