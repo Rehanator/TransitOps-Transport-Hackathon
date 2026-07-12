@@ -71,8 +71,13 @@ function FuelPage() {
           { key: "liters", header: "Liters", accessor: (r) => r.liters },
           { key: "cost", header: "Cost", accessor: (r) => r.cost,
             render: (r) => `₹${r.cost.toLocaleString()}` },
-          { key: "perLiter", header: "₹/L", accessor: (r) => (r.liters ? r.cost / r.liters : 0),
-            render: (r) => r.liters ? `₹${(r.cost / r.liters).toFixed(2)}` : "-" },
+          {
+            key: "perLiter",
+            header: "₹/L",
+            accessor: (r) => perLiter(r.cost, r.liters),
+            render: (r) =>
+              r.liters > 0 ? formatRupees(perLiter(r.cost, r.liters)) : "-",
+          },
           { key: "date", header: "Date", accessor: (r) => r.date },
         ]}
         actions={(r) => (
