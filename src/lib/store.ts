@@ -107,6 +107,7 @@ interface State {
   dispatchTrip: (id: string) => { ok: boolean; error?: string };
   completeTrip: (id: string, finalOdometer: number, fuelConsumed: number) => { ok: boolean; error?: string };
   cancelTrip: (id: string) => void;
+  deleteTrip: (id: string) => void;
 
   openMaintenance: (m: Omit<MaintenanceLog, "id" | "status">) => void;
   closeMaintenance: (id: string, endDate: string) => void;
@@ -277,6 +278,24 @@ export const useStore = create<State>()(
         if (!trip) return;
         set((s) => ({
           trips: s.trips.map((t) => (t.id === id ? { ...t, status: "Cancelled" } : t)),
+          vehicles:
+            trip.status === "Dispatched"
+              ? s.vehicles.map((x) =>
+                  x.id === trip.vehicleId ? { ...x, status: "Available" } : x,
+                )
+              : s.vehicles,
+          drivers:
+            trip.status === "Dispatched"
+              ? s.drivers.map((x) => (x.id === trip.driverId ? { ...x, status: "Available" } : x))
+              : s.drivers,
+        }));
+      },
+
+      deleteTrip: (id) => {
+        const trip = get().trips.find((t) => t.id === id);
+        if (!trip) return;
+        set((s) => ({
+          trips: s.trips.filter((t) => t.id !== id),
           vehicles:
             trip.status === "Dispatched"
               ? s.vehicles.map((x) =>
