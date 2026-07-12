@@ -107,6 +107,7 @@ interface State {
   dispatchTrip: (id: string) => { ok: boolean; error?: string };
   completeTrip: (id: string, finalOdometer: number, fuelConsumed: number) => { ok: boolean; error?: string };
   cancelTrip: (id: string) => void;
+  deleteTrip: (id: string) => void;
 
   openMaintenance: (m: Omit<MaintenanceLog, "id" | "status">) => void;
   closeMaintenance: (id: string, endDate: string) => void;
