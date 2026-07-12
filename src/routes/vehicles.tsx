@@ -1,20 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useStore, type Vehicle, type VehicleStatus } from "@/lib/store";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import { Plus, Pencil, Trash2, Download, FileText, Upload } from "lucide-react";
+import { Plus, Trash2, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { exportCSV, exportPDF } from "@/lib/export";
+import { exportCSV } from "@/lib/export";
 import { RoleGuard } from "@/components/auth/RoleGuard";
 
 export const Route = createFileRoute("/vehicles")({
@@ -25,156 +27,238 @@ export const Route = createFileRoute("/vehicles")({
   ),
 });
 
-const empty: Omit<Vehicle, "id"> = {
-  regNumber: "", name: "", type: "Van", capacity: 1000, odometer: 0,
-  acquisitionCost: 500000, status: "Available", region: "North",
+interface VehicleRow {
+  id: string;
+  registration_number: string;
+  model: string;
+  max_capacity: number;
+  lifetime_odometer: number;
+  status: string;
+  created_at: string;
+}
+
+const emptyForm = {
+  registration_number: "",
+  model: "",
+  max_capacity: "",
+  lifetime_odometer: "",
 };
 
 function VehiclesPage() {
-  const { vehicles, addVehicle, updateVehicle, deleteVehicle, currentRole } = useStore();
-  const canEdit = currentRole === "Fleet Manager";
+  const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<Vehicle | null>(null);
-  const [form, setForm] = useState<Omit<Vehicle, "id">>(empty);
+  const [form, setForm] = useState(emptyForm);
 
-  const openNew = () => { setEditing(null); setForm(empty); setOpen(true); };
-  const openEdit = (v: Vehicle) => { setEditing(v); const { id: _id, ...rest } = v; setForm(rest); setOpen(true); };
+  const vehiclesQuery = useQuery({
+    queryKey: ["vehicles"],
+    queryFn: async (): Promise<VehicleRow[]> => {
+      const { data, error } = await supabase
+        .from("vehicles")
+        .select("*")
+        .order("registration_number");
+      if (error) throw error;
+      return (data ?? []) as VehicleRow[];
+    },
+  });
 
-  const submit = () => {
-    if (!form.regNumber.trim() || !form.name.trim()) return toast.error("Registration & name required");
-    if (form.capacity <= 0) return toast.error("Capacity must be positive");
-    if (editing) {
-      if (form.regNumber.toLowerCase() !== editing.regNumber.toLowerCase() &&
-          vehicles.some((v) => v.regNumber.toLowerCase() === form.regNumber.toLowerCase())) {
-        return toast.error("Registration must be unique");
-      }
-      updateVehicle(editing.id, form);
-      toast.success("Vehicle updated");
-    } else {
-      const r = addVehicle(form);
-      if (!r.ok) return toast.error(r.error!);
-      toast.success("Vehicle added");
-    }
-    setOpen(false);
-  };
+  const create = useMutation({
+    mutationFn: async () => {
+      const reg = form.registration_number.trim();
+      const model = form.model.trim();
+      const cap = Number(form.max_capacity);
+      const odo = Number(form.lifetime_odometer);
+      if (!reg) throw new Error("Registration number is required");
+      if (!model) throw new Error("Model is required");
+      if (!(cap > 0)) throw new Error("Payload capacity must be greater than 0");
+      if (!(odo >= 0)) throw new Error("Lifetime odometer must be 0 or greater");
+      const { error } = await supabase.from("vehicles").insert({
+        registration_number: reg,
+        model,
+        max_capacity: cap,
+        lifetime_odometer: odo,
+        status: "Available",
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Vehicle registered");
+      setForm(emptyForm);
+      setOpen(false);
+      qc.invalidateQueries({ queryKey: ["vehicles"] });
+      qc.invalidateQueries({ queryKey: ["vehicles-list"] });
+    },
+    onError: (e: Error) => toast.error(e.message ?? "Failed to add vehicle"),
+  });
 
-  const rows = vehicles.map((v) => ({
-    Registration: v.regNumber, Name: v.name, Type: v.type,
-    "Capacity (kg)": v.capacity, "Odometer (km)": v.odometer,
-    "Acquisition Cost": v.acquisitionCost, Status: v.status, Region: v.region,
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("vehicles").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Vehicle removed");
+      qc.invalidateQueries({ queryKey: ["vehicles"] });
+      qc.invalidateQueries({ queryKey: ["vehicles-list"] });
+    },
+    onError: (e: Error) => toast.error(e.message ?? "Delete failed"),
+  });
+
+  const vehicles = vehiclesQuery.data ?? [];
+  const csvRows = vehicles.map((v) => ({
+    Registration: v.registration_number,
+    Model: v.model,
+    "Capacity (kg)": v.max_capacity,
+    "Lifetime Odometer (km)": v.lifetime_odometer,
+    Status: v.status,
   }));
 
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Fleet Registry</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">
+            Master Registry
+          </p>
           <h1 className="text-3xl font-bold tracking-tight">Vehicles</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Fleet acquisition records. Lifetime odometer updates automatically
+            when drivers complete trips.
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => exportCSV("vehicles.csv", rows)}>
+          <Button
+            variant="outline"
+            onClick={() => exportCSV("vehicles.csv", csvRows)}
+          >
             <Download className="mr-2 h-4 w-4" /> CSV
           </Button>
-          <Button variant="outline" onClick={() => exportPDF("Vehicles", rows)}>
-            <FileText className="mr-2 h-4 w-4" /> PDF
+          <Button onClick={() => setOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> New Vehicle
           </Button>
-          {canEdit && (
-            <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" /> New Vehicle</Button>
-          )}
         </div>
       </header>
 
       <DataTable
         data={vehicles}
         columns={[
-          { key: "regNumber", header: "Registration", accessor: (r) => r.regNumber },
-          { key: "name", header: "Name", accessor: (r) => r.name },
-          { key: "type", header: "Type", accessor: (r) => r.type },
-          { key: "capacity", header: "Capacity (kg)", accessor: (r) => r.capacity,
-            render: (r) => r.capacity.toLocaleString() },
-          { key: "odometer", header: "Odometer", accessor: (r) => r.odometer,
-            render: (r) => `${r.odometer.toLocaleString()} km` },
-          { key: "acquisitionCost", header: "Cost", accessor: (r) => r.acquisitionCost,
-            render: (r) => `₹${r.acquisitionCost.toLocaleString()}` },
-          { key: "region", header: "Region", accessor: (r) => r.region },
-          { key: "status", header: "Status", accessor: (r) => r.status,
-            render: (r) => <StatusBadge status={r.status} /> },
+          {
+            key: "registration_number",
+            header: "Registration",
+            accessor: (r) => r.registration_number,
+            render: (r) => (
+              <span className="font-mono text-sm">{r.registration_number}</span>
+            ),
+          },
+          { key: "model", header: "Model", accessor: (r) => r.model },
+          {
+            key: "capacity",
+            header: "Payload Capacity",
+            accessor: (r) => r.max_capacity,
+            render: (r) => `${Number(r.max_capacity).toLocaleString()} kg`,
+          },
+          {
+            key: "lifetime_odometer",
+            header: "Lifetime Odometer",
+            accessor: (r) => r.lifetime_odometer,
+            render: (r) =>
+              `${Number(r.lifetime_odometer).toLocaleString()} km`,
+          },
+          {
+            key: "status",
+            header: "Status",
+            accessor: (r) => r.status,
+            render: (r) => <StatusBadge status={r.status} />,
+          },
         ]}
-        actions={canEdit ? (row) => (
-          <div className="flex justify-end gap-1">
-            <Button size="icon" variant="ghost" onClick={() => openEdit(row)}>
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button size="icon" variant="ghost" onClick={() => {
-              deleteVehicle(row.id); toast.success("Vehicle removed");
-            }}>
+        actions={(row) => (
+          <div className="flex justify-end">
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => {
+                if (confirm(`Remove ${row.registration_number}?`))
+                  remove.mutate(row.id);
+              }}
+            >
               <Trash2 className="h-4 w-4 text-destructive" />
             </Button>
           </div>
-        ) : undefined}
+        )}
       />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>{editing ? "Edit vehicle" : "Register vehicle"}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Register vehicle</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">
+            Vehicle registration is a one-time fleet acquisition event. Trip
+            data is captured separately.
+          </p>
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="sm:col-span-2"><Label>Registration Number</Label>
-              <Input value={form.regNumber} onChange={(e) => setForm({ ...form, regNumber: e.target.value })} />
-            </div>
-            <div className="sm:col-span-2"><Label>Model / Name</Label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            </div>
-            <div><Label>Type</Label>
-              <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as Vehicle["type"] })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {["Van","Truck","Bus","Car"].map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div><Label>Region</Label>
-              <Select value={form.region} onValueChange={(v) => setForm({ ...form, region: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {["North","South","East","West","Central"].map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div><Label>Max Capacity (kg)</Label>
-              <Input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: +e.target.value })} />
-            </div>
-            <div><Label>Odometer (km)</Label>
-              <Input type="number" value={form.odometer} onChange={(e) => setForm({ ...form, odometer: +e.target.value })} />
-            </div>
-            <div><Label>Acquisition Cost (₹)</Label>
-              <Input type="number" value={form.acquisitionCost} onChange={(e) => setForm({ ...form, acquisitionCost: +e.target.value })} />
-            </div>
-            <div><Label>Status</Label>
-              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as VehicleStatus })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {["Available","On Trip","In Shop","Retired"].map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
-                </SelectContent>
-              </Select>
+            <div className="sm:col-span-2">
+              <Label>Registration Number</Label>
+              <Input
+                value={form.registration_number}
+                onChange={(e) =>
+                  setForm({ ...form, registration_number: e.target.value })
+                }
+                placeholder="e.g. MH12-AB-1234"
+              />
             </div>
             <div className="sm:col-span-2">
-              <Label>Registration Document</Label>
-              <div className="flex items-center gap-2 rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-                <Upload className="h-4 w-4" />
-                <span>Drop or click to upload (mock)</span>
-                <input type="file" className="ml-auto text-xs" onChange={(e) => setForm({ ...form, documentUrl: e.target.files?.[0]?.name })} />
-              </div>
-              {form.documentUrl && <p className="mt-1 text-xs text-muted-foreground">Attached: {form.documentUrl}</p>}
+              <Label>Model</Label>
+              <Input
+                value={form.model}
+                onChange={(e) => setForm({ ...form, model: e.target.value })}
+                placeholder="e.g. Tata Ace"
+              />
+            </div>
+            <div>
+              <Label>Payload Capacity (kg)</Label>
+              <Input
+                type="number"
+                min="0"
+                value={form.max_capacity}
+                onChange={(e) =>
+                  setForm({ ...form, max_capacity: e.target.value })
+                }
+                placeholder="e.g. 1000"
+              />
+            </div>
+            <div>
+              <Label>Initial Lifetime Odometer (km)</Label>
+              <Input
+                type="number"
+                min="0"
+                value={form.lifetime_odometer}
+                onChange={(e) =>
+                  setForm({ ...form, lifetime_odometer: e.target.value })
+                }
+                placeholder="e.g. 0"
+              />
+            </div>
+            <div className="sm:col-span-2 rounded-md border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+              Status will be set to <strong>Available</strong> on creation.
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={submit}>{editing ? "Save changes" : "Add vehicle"}</Button>
+            <Button variant="ghost" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => create.mutate()}
+              disabled={create.isPending}
+            >
+              {create.isPending ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+              ) : (
+                "Add vehicle"
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      
     </div>
   );
 }
