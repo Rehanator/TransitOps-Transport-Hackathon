@@ -15,6 +15,7 @@ import {
 import { Plus, Play, CheckCircle2, Ban, Download, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { exportCSV, exportPDF } from "@/lib/export";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/trips")({ component: TripsPage });
 
@@ -58,13 +59,34 @@ function TripsPage() {
   const startComplete = (t: Trip) => {
     const v = vehicles.find((x) => x.id === t.vehicleId);
     setCompleting(t);
-    setCompForm({ finalOdometer: v ? v.odometer + t.plannedDistance : 0, fuelConsumed: Math.round(t.plannedDistance / 8) });
+    setCompForm({
+      finalOdometer: v ? v.odometer + t.plannedDistance : 0,
+      fuelConsumed: Math.round(t.plannedDistance / 8),
+    });
   };
-  const finalizeComplete = () => {
+  const finalizeComplete = async () => {
     if (!completing) return;
-    if (compForm.finalOdometer <= 0 || compForm.fuelConsumed <= 0) return toast.error("Enter valid values");
+    if (compForm.fuelConsumed <= 0) return toast.error("Fuel consumed must be greater than 0");
+    const vehicle = vehicles.find((v) => v.id === completing.vehicleId);
+    if (!vehicle) return toast.error("Vehicle not found");
+    if (!(compForm.finalOdometer > vehicle.odometer)) {
+      return toast.error(
+        `Final odometer must be greater than ${vehicle.odometer.toLocaleString()} km`,
+      );
+    }
     const r = completeTrip(completing.id, compForm.finalOdometer, compForm.fuelConsumed);
     if (!r.ok) return toast.error(r.error!);
+    // Sync lifetime_odometer to the master registry (Supabase) when a matching
+    // vehicle exists (matched by registration number).
+    try {
+      const { error } = await supabase
+        .from("vehicles")
+        .update({ lifetime_odometer: compForm.finalOdometer })
+        .eq("registration_number", vehicle.regNumber);
+      if (error) console.warn("[trips] supabase odometer sync failed", error);
+    } catch (e) {
+      console.warn("[trips] supabase odometer sync error", e);
+    }
     toast.success("Trip completed");
     setCompleting(null);
   };
@@ -219,16 +241,24 @@ function TripsPage() {
         <DialogContent>
           <DialogHeader><DialogTitle>Complete trip</DialogTitle></DialogHeader>
           <div className="grid gap-3">
-            <div><Label>Final Odometer (km)</Label>
+            <div><Label>Final Odometer Reading (km)</Label>
               <Input type="number" value={compForm.finalOdometer}
                 onChange={(e) => setCompForm({ ...compForm, finalOdometer: +e.target.value })} />
+              {completing && (() => {
+                const v = vehicles.find((x) => x.id === completing.vehicleId);
+                return v ? (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Current lifetime odometer: {v.odometer.toLocaleString()} km · final must be greater.
+                  </p>
+                ) : null;
+              })()}
             </div>
             <div><Label>Fuel Consumed (liters)</Label>
               <Input type="number" value={compForm.fuelConsumed}
                 onChange={(e) => setCompForm({ ...compForm, fuelConsumed: +e.target.value })} />
             </div>
             <p className="text-xs text-muted-foreground">
-              A fuel log will be created automatically.
+              The vehicle's lifetime odometer will be updated to the value above.
             </p>
           </div>
           <DialogFooter>

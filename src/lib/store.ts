@@ -253,6 +253,14 @@ export const useStore = create<State>()(
         const trip = get().trips.find((t) => t.id === id);
         if (!trip) return { ok: false, error: "Trip not found" };
         if (trip.status !== "Dispatched") return { ok: false, error: "Trip not dispatched" };
+        const vehicle = get().vehicles.find((v) => v.id === trip.vehicleId);
+        if (!vehicle) return { ok: false, error: "Vehicle not found" };
+        if (!(finalOdometer > vehicle.odometer)) {
+          return {
+            ok: false,
+            error: `Final odometer must be greater than current lifetime odometer (${vehicle.odometer.toLocaleString()} km).`,
+          };
+        }
         set((s) => ({
           trips: s.trips.map((t) =>
             t.id === id ? { ...t, status: "Completed", finalOdometer, fuelConsumed } : t,
