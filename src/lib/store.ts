@@ -111,6 +111,7 @@ interface State {
 
   openMaintenance: (m: Omit<MaintenanceLog, "id" | "status">) => void;
   closeMaintenance: (id: string, endDate: string) => void;
+  deleteMaintenance: (id: string) => void;
 
   addFuel: (f: Omit<FuelLog, "id">) => void;
   addExpense: (e: Omit<Expense, "id">) => void;
