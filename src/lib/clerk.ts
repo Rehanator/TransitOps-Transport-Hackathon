@@ -26,7 +26,7 @@ export function useUserRole(): {
       if (!clerkId) return [];
       const { data, error } = await supabase.rpc("get_user_roles", {
         _clerk_user_id: clerkId,
-        _email: email,
+        _email: email ?? undefined,
       });
       if (error) {
         console.error("[user_roles] fetch failed", error);
