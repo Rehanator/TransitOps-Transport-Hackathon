@@ -360,7 +360,7 @@ export const useStore = create<State>()(
           expenses: seedExpenses,
         }),
     }),
-    { name: "transitops-store" },
+    { name: "transitops-store-v2" },
   ),
 );
 
