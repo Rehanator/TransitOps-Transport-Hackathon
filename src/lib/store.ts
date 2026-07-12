@@ -329,6 +329,19 @@ export const useStore = create<State>()(
           ),
         }));
       },
+      deleteMaintenance: (id) => {
+        const log = get().maintenance.find((m) => m.id === id);
+        if (!log) return;
+        set((s) => ({
+          maintenance: s.maintenance.filter((m) => m.id !== id),
+          vehicles:
+            log.status === "Open" && s.vehicles.find((v) => v.id === log.vehicleId)?.status === "In Shop"
+              ? s.vehicles.map((v) =>
+                  v.id === log.vehicleId ? { ...v, status: "Available" } : v,
+                )
+              : s.vehicles,
+        }));
+      },
       addFuel: (f) => set((s) => ({ fuel: [...s.fuel, { ...f, id: uid() }] })),
       addExpense: (e) => set((s) => ({ expenses: [...s.expenses, { ...e, id: uid() }] })),
       resetSeed: () =>
