@@ -111,6 +111,7 @@ interface State {
 
   openMaintenance: (m: Omit<MaintenanceLog, "id" | "status">) => void;
   closeMaintenance: (id: string, endDate: string) => void;
+  deleteMaintenance: (id: string) => void;
 
   addFuel: (f: Omit<FuelLog, "id">) => void;
   addExpense: (e: Omit<Expense, "id">) => void;
@@ -326,6 +327,19 @@ export const useStore = create<State>()(
           vehicles: s.vehicles.map((v) =>
             v.id === log.vehicleId && v.status === "In Shop" ? { ...v, status: "Available" } : v,
           ),
+        }));
+      },
+      deleteMaintenance: (id) => {
+        const log = get().maintenance.find((m) => m.id === id);
+        if (!log) return;
+        set((s) => ({
+          maintenance: s.maintenance.filter((m) => m.id !== id),
+          vehicles:
+            log.status === "Open" && s.vehicles.find((v) => v.id === log.vehicleId)?.status === "In Shop"
+              ? s.vehicles.map((v) =>
+                  v.id === log.vehicleId ? { ...v, status: "Available" } : v,
+                )
+              : s.vehicles,
         }));
       },
       addFuel: (f) => set((s) => ({ fuel: [...s.fuel, { ...f, id: uid() }] })),

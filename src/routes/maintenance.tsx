@@ -13,14 +13,14 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Plus, CheckCircle2, Download } from "lucide-react";
+import { Plus, CheckCircle2, Download, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { exportCSV } from "@/lib/export";
 
 export const Route = createFileRoute("/maintenance")({ component: MaintenancePage });
 
 function MaintenancePage() {
-  const { maintenance, vehicles, openMaintenance, closeMaintenance, currentRole } = useStore();
+  const { maintenance, vehicles, openMaintenance, closeMaintenance, deleteMaintenance, currentRole } = useStore();
   const canEdit = currentRole === "Fleet Manager";
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
@@ -72,14 +72,24 @@ function MaintenancePage() {
             render: (r) => <StatusBadge status={r.status} /> },
         ]}
         actions={canEdit ? (row) => (
-          row.status === "Open" ? (
-            <Button size="sm" variant="outline" onClick={() => {
-              closeMaintenance(row.id, new Date().toISOString().slice(0, 10));
-              toast.success("Maintenance closed; vehicle back to Available");
-            }}>
-              <CheckCircle2 className="mr-1 h-3 w-3" /> Close
+          <div className="flex items-center justify-end gap-2">
+            {row.status === "Open" && (
+              <Button size="sm" variant="outline" onClick={() => {
+                closeMaintenance(row.id, new Date().toISOString().slice(0, 10));
+                toast.success("Maintenance closed; vehicle back to Available");
+              }}>
+                <CheckCircle2 className="mr-1 h-3 w-3" /> Close
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="ghost"
+              aria-label="Delete maintenance log"
+              onClick={() => { deleteMaintenance(row.id); toast.success("Maintenance log deleted"); }}
+            >
+              <Trash2 className="h-4 w-4 text-red-500" />
             </Button>
-          ) : null
+          </div>
         ) : undefined}
       />
 
