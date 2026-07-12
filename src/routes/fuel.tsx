@@ -11,14 +11,14 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Plus, Download } from "lucide-react";
+import { Plus, Download, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { exportCSV } from "@/lib/export";
 
 export const Route = createFileRoute("/fuel")({ component: FuelPage });
 
 function FuelPage() {
-  const { fuel, vehicles, addFuel, currentRole } = useStore();
+  const { fuel, vehicles, addFuel, deleteFuel, currentRole } = useStore();
   const canEdit = currentRole === "Fleet Manager";
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
@@ -35,7 +35,7 @@ function FuelPage() {
 
   const rows = fuel.map((f) => ({
     ID: f.id, Vehicle: vehicles.find((v) => v.id === f.vehicleId)?.regNumber ?? "-",
-    Liters: f.liters, Cost: f.cost, Date: f.date,
+    Liters: f.liters, Cost: f.cost, "₹/L": f.liters ? (f.cost / f.liters).toFixed(2) : "-", Date: f.date,
   }));
 
   return (
@@ -61,8 +61,20 @@ function FuelPage() {
           { key: "liters", header: "Liters", accessor: (r) => r.liters },
           { key: "cost", header: "Cost", accessor: (r) => r.cost,
             render: (r) => `₹${r.cost.toLocaleString()}` },
+          { key: "perLiter", header: "₹/L", accessor: (r) => (r.liters ? r.cost / r.liters : 0),
+            render: (r) => r.liters ? `₹${(r.cost / r.liters).toFixed(2)}` : "-" },
           { key: "date", header: "Date", accessor: (r) => r.date },
         ]}
+        actions={(r) => (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-red-500 hover:text-red-500"
+            onClick={() => { deleteFuel(r.id); toast.success("Fuel log deleted"); }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
       />
 
       <Dialog open={open} onOpenChange={setOpen}>
