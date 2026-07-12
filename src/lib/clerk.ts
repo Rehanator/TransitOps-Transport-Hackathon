@@ -11,6 +11,7 @@ export type AppRole = "Fleet Manager" | "Driver";
  */
 export function useUserRole(): {
   role: AppRole | null;
+  roles: AppRole[];
   isLoaded: boolean;
   isSignedIn: boolean;
 } {
@@ -21,8 +22,8 @@ export function useUserRole(): {
   const { data, isFetched, isLoading } = useQuery({
     queryKey: ["user_role", clerkId, email],
     enabled: !!clerkId,
-    queryFn: async (): Promise<AppRole | null> => {
-      if (!clerkId) return null;
+    queryFn: async (): Promise<AppRole[]> => {
+      if (!clerkId) return [];
       const filters = [`clerk_user_id.eq.${clerkId}`];
       if (email) filters.push(`email.eq.${email}`);
       const { data, error } = await supabase
@@ -31,18 +32,23 @@ export function useUserRole(): {
         .or(filters.join(","));
       if (error) {
         console.error("[user_roles] fetch failed", error);
-        return null;
+        return [];
       }
-      if (!data || data.length === 0) return null;
-      const byId = data.find((r) => r.clerk_user_id === clerkId);
-      const chosen = byId ?? data[0];
-      const raw = chosen.role;
-      return raw === "Fleet Manager" || raw === "Driver" ? raw : null;
+      const roles = new Set<AppRole>();
+      for (const r of data ?? []) {
+        if (r.role === "Fleet Manager" || r.role === "Driver") roles.add(r.role);
+      }
+      return Array.from(roles);
     },
   });
 
   const isLoaded = clerkLoaded && (!clerkId || isFetched || !isLoading);
-  return { role: data ?? null, isLoaded, isSignedIn: !!isSignedIn };
+  const roles = data ?? [];
+  // Prefer Fleet Manager when the user has both roles.
+  const role: AppRole | null = roles.includes("Fleet Manager")
+    ? "Fleet Manager"
+    : roles[0] ?? null;
+  return { role, roles, isLoaded, isSignedIn: !!isSignedIn };
 }
 
 export function hasRole(role: AppRole | null, allowed: AppRole[]): boolean {
