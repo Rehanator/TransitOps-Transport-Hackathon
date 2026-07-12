@@ -35,6 +35,11 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { RoleGuard } from "@/components/auth/RoleGuard";
+import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { fetchFuelLogs } from "@/lib/fuel-logs";
+import { ClipboardCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   component: () => (
@@ -68,6 +73,35 @@ function KpiCard({
           <p className="text-2xl font-semibold">{value}</p>
           {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function PendingFuelReviewCard() {
+  const { data } = useQuery({
+    queryKey: ["fuel-logs", "Pending"],
+    queryFn: () => fetchFuelLogs("Pending"),
+  });
+  const count = data?.length ?? 0;
+  return (
+    <Card className="border-info/40 bg-info/5">
+      <CardHeader className="flex flex-row items-center gap-2 space-y-0">
+        <ClipboardCheck className="h-5 w-5 text-info" />
+        <CardTitle className="text-info">Fuel Logs Pending Verification</CardTitle>
+        {count > 0 && (
+          <Badge variant="secondary" className="ml-auto">{count} pending</Badge>
+        )}
+      </CardHeader>
+      <CardContent className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          {count === 0
+            ? "No driver fuel submissions awaiting review."
+            : `${count} driver submission${count === 1 ? "" : "s"} need review before being added to vehicle expenses.`}
+        </p>
+        <Button asChild size="sm" variant={count > 0 ? "default" : "outline"}>
+          <Link to="/fuel-verification">Open verification</Link>
+        </Button>
       </CardContent>
     </Card>
   );
@@ -246,6 +280,7 @@ function Dashboard() {
         </CardContent>
       </Card>
 
+      <PendingFuelReviewCard />
 
       <Card>
         <CardHeader><CardTitle>Cost Distribution by Vehicle</CardTitle></CardHeader>
