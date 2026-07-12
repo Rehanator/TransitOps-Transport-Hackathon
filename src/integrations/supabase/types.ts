@@ -138,7 +138,105 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_fuel_log: {
+        Args: {
+          _driver_email: string
+          _driver_id: string
+          _liters: number
+          _media_url: string
+          _notes: string
+          _total_cost: number
+          _vehicle_id: string
+          _vehicle_registration: string
+        }
+        Returns: {
+          created_at: string
+          driver_email: string | null
+          driver_id: string
+          id: string
+          liters: number
+          media_url: string | null
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_note: string | null
+          status: Database["public"]["Enums"]["fuel_log_status"]
+          total_cost: number
+          updated_at: string
+          vehicle_id: string | null
+          vehicle_registration: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "fuel_logs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      get_user_roles: {
+        Args: { _clerk_user_id: string; _email?: string }
+        Returns: {
+          role: Database["public"]["Enums"]["app_role"]
+        }[]
+      }
+      list_fuel_logs: {
+        Args: { _driver_id?: string; _status?: string }
+        Returns: {
+          created_at: string
+          driver_email: string | null
+          driver_id: string
+          id: string
+          liters: number
+          media_url: string | null
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_note: string | null
+          status: Database["public"]["Enums"]["fuel_log_status"]
+          total_cost: number
+          updated_at: string
+          vehicle_id: string | null
+          vehicle_registration: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "fuel_logs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      review_fuel_log: {
+        Args: {
+          _approve: boolean
+          _id: string
+          _note?: string
+          _reviewer_id: string
+        }
+        Returns: {
+          created_at: string
+          driver_email: string | null
+          driver_id: string
+          id: string
+          liters: number
+          media_url: string | null
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_note: string | null
+          status: Database["public"]["Enums"]["fuel_log_status"]
+          total_cost: number
+          updated_at: string
+          vehicle_id: string | null
+          vehicle_registration: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "fuel_logs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      sum_approved_fuel_cost: { Args: { _vehicle_id: string }; Returns: number }
     }
     Enums: {
       app_role: "Fleet Manager" | "Driver"

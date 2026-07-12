@@ -44,32 +44,34 @@ export interface CreateFuelLogInput {
 }
 
 export async function createFuelLog(input: CreateFuelLogInput) {
-  const { error, data } = await supabase
-    .from("fuel_logs")
-    .insert({
-      vehicle_id: input.vehicleId,
-      vehicle_registration: input.vehicleRegistration,
-      driver_id: input.driverId,
-      driver_email: input.driverEmail,
-      liters: input.liters,
-      total_cost: input.totalCost,
-      notes: input.notes ?? null,
-      media_url: input.mediaPath,
-      status: "Pending",
-    })
-    .select()
-    .single();
+  const { error, data } = await supabase.rpc("create_fuel_log", {
+    _vehicle_id: input.vehicleId,
+    _vehicle_registration: input.vehicleRegistration,
+    _driver_id: input.driverId,
+    _driver_email: input.driverEmail ?? undefined,
+    _liters: input.liters,
+    _total_cost: input.totalCost,
+    _notes: input.notes ?? undefined,
+    _media_url: input.mediaPath ?? undefined,
+  });
   if (error) throw error;
-  return data;
+  return data as unknown as FuelLogRow;
 }
 
 export async function fetchFuelLogs(status?: FuelLogStatus) {
-  let q = supabase
-    .from("fuel_logs")
-    .select("*")
-    .order("created_at", { ascending: false });
-  if (status) q = q.eq("status", status);
-  const { data, error } = await q;
+  const { data, error } = await supabase.rpc("list_fuel_logs", {
+    _status: status ?? undefined,
+    _driver_id: undefined,
+  });
+  if (error) throw error;
+  return (data ?? []) as FuelLogRow[];
+}
+
+export async function fetchFuelLogsByDriver(driverId: string, status?: FuelLogStatus) {
+  const { data, error } = await supabase.rpc("list_fuel_logs", {
+    _status: status ?? undefined,
+    _driver_id: driverId,
+  });
   if (error) throw error;
   return (data ?? []) as FuelLogRow[];
 }
@@ -80,24 +82,19 @@ export async function reviewFuelLog(params: {
   reviewerId: string;
   note?: string;
 }) {
-  const { error } = await supabase
-    .from("fuel_logs")
-    .update({
-      status: params.approve ? "Approved" : "Rejected",
-      reviewed_by: params.reviewerId,
-      reviewed_at: new Date().toISOString(),
-      reviewer_note: params.note ?? null,
-    })
-    .eq("id", params.id);
+  const { error } = await supabase.rpc("review_fuel_log", {
+    _id: params.id,
+    _approve: params.approve,
+    _reviewer_id: params.reviewerId,
+    _note: params.note ?? undefined,
+  });
   if (error) throw error;
 }
 
 export async function fetchApprovedFuelCostByVehicle(vehicleId: string) {
-  const { data, error } = await supabase
-    .from("fuel_logs")
-    .select("total_cost")
-    .eq("vehicle_id", vehicleId)
-    .eq("status", "Approved");
+  const { data, error } = await supabase.rpc("sum_approved_fuel_cost", {
+    _vehicle_id: vehicleId,
+  });
   if (error) throw error;
-  return (data ?? []).reduce((s, r) => s + Number(r.total_cost ?? 0), 0);
+  return Number(data ?? 0);
 }

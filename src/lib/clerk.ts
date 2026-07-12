@@ -24,12 +24,10 @@ export function useUserRole(): {
     enabled: !!clerkId,
     queryFn: async (): Promise<AppRole[]> => {
       if (!clerkId) return [];
-      const filters = [`clerk_user_id.eq.${clerkId}`];
-      if (email) filters.push(`email.eq.${email}`);
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role, clerk_user_id, email")
-        .or(filters.join(","));
+      const { data, error } = await supabase.rpc("get_user_roles", {
+        _clerk_user_id: clerkId,
+        _email: email ?? undefined,
+      });
       if (error) {
         console.error("[user_roles] fetch failed", error);
         return [];
