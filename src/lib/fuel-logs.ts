@@ -48,11 +48,11 @@ export async function createFuelLog(input: CreateFuelLogInput) {
     _vehicle_id: input.vehicleId,
     _vehicle_registration: input.vehicleRegistration,
     _driver_id: input.driverId,
-    _driver_email: input.driverEmail ?? undefined,
+    _driver_email: input.driverEmail as unknown as string,
     _liters: input.liters,
     _total_cost: input.totalCost,
-    _notes: input.notes ?? undefined,
-    _media_url: input.mediaPath ?? undefined,
+    _notes: (input.notes ?? null) as unknown as string,
+    _media_url: (input.mediaPath ?? null) as unknown as string,
   });
   if (error) throw error;
   return data as unknown as FuelLogRow;
