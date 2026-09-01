@@ -57,6 +57,111 @@ function RoleAwareDashboard() {
   return role === "Driver" ? <DriverDashboard /> : <Dashboard />;
 }
 
+function DriverDashboard() {
+  const { user } = useUser();
+  const { trips, drivers } = useStore();
+  const email = user?.primaryEmailAddress?.emailAddress?.toLowerCase() ?? "";
+  const name = user?.fullName ?? "";
+
+  // Match the signed-in driver to a store driver record (by email or name).
+  const me =
+    drivers.find((d) => d.email?.toLowerCase() === email) ??
+    drivers.find((d) => name && d.name.toLowerCase() === name.toLowerCase()) ??
+    null;
+
+  const currentTrip = me
+    ? trips.find((t) => t.driverId === me.id && t.status === "Dispatched")
+    : undefined;
+
+  const expired = me ? isLicenseExpired(me) : false;
+
+  return (
+    <div className="space-y-6">
+      <header>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          Welcome back, {name.split(" ")[0] || "Driver"}
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Your trips and assignments.
+        </p>
+      </header>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex flex-row items-center gap-2 space-y-0">
+            <MapPin className="h-5 w-5 text-info" />
+            <CardTitle>My Current Trip</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {currentTrip ? (
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">From</p>
+                  <p className="font-medium">{currentTrip.source}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">To</p>
+                  <p className="font-medium">{currentTrip.destination}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Status</p>
+                  <Badge variant="secondary">{currentTrip.status}</Badge>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No active trips assigned.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>My Profile Status</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Safety Score</span>
+              <span className="text-xl font-semibold">{me?.safetyScore ?? "—"}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">License</span>
+              {me ? (
+                expired ? (
+                  <Badge variant="destructive">Expired {me.licenseExpiry}</Badge>
+                ) : (
+                  <Badge variant="secondary" className="bg-success/15 text-success">
+                    Valid until {me.licenseExpiry}
+                  </Badge>
+                )
+              ) : (
+                <span className="text-sm text-muted-foreground">—</span>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <Button asChild size="lg" className="h-20 text-base">
+            <Link to="/driver-portal">
+              <Fuel className="mr-2 h-5 w-5" /> Submit Fuel Log
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="h-20 text-base">
+            <Link to="/trips">
+              <Gauge className="mr-2 h-5 w-5" /> Update Odometer
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function KpiCard({
   title, value, icon: Icon, hint, tone = "default",
 }: {
