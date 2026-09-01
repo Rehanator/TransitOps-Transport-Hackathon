@@ -89,7 +89,7 @@ function DriverDashboard() {
     <div className="space-y-6">
       <header>
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          Welcome back, Rajesh
+          Welcome back, {name.split(" ")[0] || "Driver"}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Your trips and assignments.
