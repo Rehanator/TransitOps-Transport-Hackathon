@@ -368,7 +368,23 @@ export const useStore = create<State>()(
           expenses: seedExpenses,
         }),
     }),
-    { name: "transitops-store-v2" },
+    {
+      name: "transitops-store-v3",
+      migrate: (persistedState: unknown) => {
+        const state = persistedState as Partial<State>;
+        if (state.drivers) {
+          state.drivers = state.drivers.map((d) => {
+            const lower = d.name.toLowerCase();
+            if (lower === "rehan") return { ...d, name: "rajesh" };
+            if (lower.includes("rehan")) {
+              return { ...d, name: d.name.replace(/rehan/gi, "rajesh") };
+            }
+            return d;
+          });
+        }
+        return state as State;
+      },
+    },
   ),
 );
 
