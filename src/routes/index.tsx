@@ -59,13 +59,16 @@ function RoleAwareDashboard() {
 
 function DriverDashboard() {
   const { user } = useUser();
-  const { trips, drivers } = useStore();
+  const { trips, drivers, users } = useStore();
   const email = user?.primaryEmailAddress?.emailAddress?.toLowerCase() ?? "";
   const name = user?.fullName ?? "";
 
-  // Match the signed-in driver to a store driver record (by email or name).
+  // Match the signed-in user to a store driver record (via users.driverId or name).
+  const userRec = users.find(
+    (u) => u.email?.toLowerCase() === email && u.role === "Driver",
+  );
   const me =
-    drivers.find((d) => d.email?.toLowerCase() === email) ??
+    drivers.find((d) => d.id === userRec?.driverId) ??
     drivers.find((d) => name && d.name.toLowerCase() === name.toLowerCase()) ??
     null;
 
