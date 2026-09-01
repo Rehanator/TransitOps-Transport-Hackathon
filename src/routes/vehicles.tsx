@@ -78,7 +78,14 @@ function VehiclesPage() {
         lifetime_odometer: odo,
         status: "Available",
       });
-      if (error) throw error;
+      if (error) {
+        if (error.code === "23505" || error.message?.includes("vehicles_registration_number_key")) {
+          throw new Error(
+            `A vehicle with registration "${reg}" already exists in the registry.`,
+          );
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success("Vehicle registered");
