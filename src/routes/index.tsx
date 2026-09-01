@@ -35,6 +35,9 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { RoleGuard } from "@/components/auth/RoleGuard";
+import { useUserRole } from "@/lib/clerk";
+import { useUser } from "@clerk/clerk-react";
+import { Fuel, Gauge, MapPin } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { fetchFuelLogs } from "@/lib/fuel-logs";
@@ -43,11 +46,16 @@ import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   component: () => (
-    <RoleGuard allowed={["Fleet Manager"]}>
-      <Dashboard />
+    <RoleGuard allowed={["Fleet Manager", "Driver"]}>
+      <RoleAwareDashboard />
     </RoleGuard>
   ),
 });
+
+function RoleAwareDashboard() {
+  const { role } = useUserRole();
+  return role === "Driver" ? <DriverDashboard /> : <Dashboard />;
+}
 
 function KpiCard({
   title, value, icon: Icon, hint, tone = "default",
