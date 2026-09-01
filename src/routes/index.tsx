@@ -53,8 +53,15 @@ export const Route = createFileRoute("/")({
 });
 
 function RoleAwareDashboard() {
-  const { role } = useUserRole();
-  return role === "Driver" ? <DriverDashboard /> : <Dashboard />;
+  const { role, roles } = useUserRole();
+  const currentRole = useStore((s) => s.currentRole);
+  // Users with multiple roles can switch views via the header role switcher.
+  const effectiveRole =
+    (currentRole === "Driver" || currentRole === "Fleet Manager") &&
+    roles.includes(currentRole)
+      ? currentRole
+      : role;
+  return effectiveRole === "Driver" ? <DriverDashboard /> : <Dashboard />;
 }
 
 function DriverDashboard() {
